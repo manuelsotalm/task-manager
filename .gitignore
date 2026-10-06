@@ -1,0 +1,72 @@
+# Build artifacts
+[Bb]in/
+[Oo]bj/
+
+# NuGet packages
+*.nupkg
+*.snupkg
+.nuget/
+packages/
+
+# User-specific files
+*.user
+*.suo
+*.userprefs
+*.sln.docstates
+
+# IDE/Editor files
+.vs/
+.idea/
+*.swp
+*.swo
+*~
+
+# Visual Studio Code
+.vscode/
+*.code-workspace
+
+# Test results
+TestResults/
+*.trx
+*.coverage
+*.coveragexml
+
+# EF Core migrations (optional - keep if you want to track them)
+# Migrations/
+
+# Database files
+*.mdf
+*.ldf
+*.sqlite
+*.db
+
+# Logs
+*.log
+logs/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Rider
+.idea/
+
+# BenchmarkDotNet artifacts
+BenchmarkDotNet.Artifacts/
+
+# Publishing
+Publish/
+*.pubxml
+
+# Docker
+.docker/
+
+# Local configuration
+appsettings.Development.json
+appsettings.Local.json
+*.local.json
+
+# Temporary files
+*.tmp
+*.temp
+temp/
