@@ -24,14 +24,21 @@ builder.Services.AddInfrastructure(builder.Configuration, builder.Environment.En
 
 var app = builder.Build();
 
-app.MapOpenApi();
-app.MapScalarApiReference();
-app.UseSwagger();
-app.UseSwaggerUI(options =>
+var apiDocsEnabled = app.Environment.IsDevelopment()
+    || app.Environment.IsEnvironment("Testing")
+    || string.Equals(app.Configuration["ApiDocs:Enabled"], "true", StringComparison.OrdinalIgnoreCase);
+
+if (apiDocsEnabled)
 {
-    options.SwaggerEndpoint("/swagger/v1/swagger.json", "Task Management API v1");
-    options.RoutePrefix = "swagger";
-});
+    app.MapOpenApi();
+    app.MapScalarApiReference();
+    app.UseSwagger();
+    app.UseSwaggerUI(options =>
+    {
+        options.SwaggerEndpoint("/swagger/v1/swagger.json", "Task Management API v1");
+        options.RoutePrefix = "swagger";
+    });
+}
 
 app.UseExceptionHandler(errorApp =>
 {

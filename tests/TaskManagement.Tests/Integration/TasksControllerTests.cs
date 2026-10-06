@@ -44,6 +44,20 @@ public class TasksControllerTests : IClassFixture<TestWebApplicationFactory>, IA
         await InitializeAsync();
     }
 
+    [Theory]
+    [InlineData("/openapi/v1.json")]
+    [InlineData("/swagger")]
+    [InlineData("/swagger/v1/swagger.json")]
+    [InlineData("/scalar/v1")]
+    public async Task ApiDocs_ReturnOk_WhenEnabledForTesting(string url)
+    {
+        // Act
+        var response = await _client.GetAsync(url);
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+    }
+
     [Fact]
     public async Task CreateTask_ReturnsCreated_WithValidData()
     {

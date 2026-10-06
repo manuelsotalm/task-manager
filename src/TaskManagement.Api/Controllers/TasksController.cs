@@ -6,7 +6,6 @@ using TaskManagement.Application.Commands;
 using TaskManagement.Application.DTOs;
 using TaskManagement.Application.Queries;
 using TaskManagement.Domain.Enums;
-using TaskManagement.Domain.Exceptions;
 
 [ApiController]
 [Route("api/[controller]")]
@@ -28,20 +27,9 @@ public class TasksController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<TaskDto>> CreateTask([FromBody] CreateTaskDto dto, CancellationToken cancellationToken)
     {
-        try
-        {
-            var command = new CreateTaskCommand(dto);
-            var result = await _mediator.Send(command, cancellationToken);
-            return CreatedAtAction(nameof(GetTask), new { id = result.Id }, result);
-        }
-        catch (ArgumentOutOfRangeException ex)
-        {
-            return BadRequest(new { error = ex.Message });
-        }
-        catch (ArgumentException ex)
-        {
-            return BadRequest(new { error = ex.Message });
-        }
+        var command = new CreateTaskCommand(dto);
+        var result = await _mediator.Send(command, cancellationToken);
+        return CreatedAtAction(nameof(GetTask), new { id = result.Id }, result);
     }
 
     /// <summary>
@@ -84,24 +72,9 @@ public class TasksController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<TaskDto>> UpdateTask(int id, [FromBody] UpdateTaskDto dto, CancellationToken cancellationToken)
     {
-        try
-        {
-            var command = new UpdateTaskCommand(id, dto);
-            var result = await _mediator.Send(command, cancellationToken);
-            return Ok(result);
-        }
-        catch (TaskNotFoundException)
-        {
-            return NotFound();
-        }
-        catch (ArgumentOutOfRangeException ex)
-        {
-            return BadRequest(new { error = ex.Message });
-        }
-        catch (ArgumentException ex)
-        {
-            return BadRequest(new { error = ex.Message });
-        }
+        var command = new UpdateTaskCommand(id, dto);
+        var result = await _mediator.Send(command, cancellationToken);
+        return Ok(result);
     }
 
     /// <summary>
@@ -113,20 +86,9 @@ public class TasksController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<TaskDto>> ChangeStatus(int id, [FromBody] ChangeTaskStatusDto dto, CancellationToken cancellationToken)
     {
-        try
-        {
-            var command = new ChangeTaskStatusCommand(id, dto);
-            var result = await _mediator.Send(command, cancellationToken);
-            return Ok(result);
-        }
-        catch (TaskNotFoundException)
-        {
-            return NotFound();
-        }
-        catch (InvalidStatusTransitionException ex)
-        {
-            return BadRequest(new { error = ex.Message });
-        }
+        var command = new ChangeTaskStatusCommand(id, dto);
+        var result = await _mediator.Send(command, cancellationToken);
+        return Ok(result);
     }
 
     /// <summary>
@@ -137,15 +99,8 @@ public class TasksController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult> DeleteTask(int id, CancellationToken cancellationToken)
     {
-        try
-        {
-            var command = new DeleteTaskCommand(id);
-            await _mediator.Send(command, cancellationToken);
-            return NoContent();
-        }
-        catch (TaskNotFoundException)
-        {
-            return NotFound();
-        }
+        var command = new DeleteTaskCommand(id);
+        await _mediator.Send(command, cancellationToken);
+        return NoContent();
     }
 }
