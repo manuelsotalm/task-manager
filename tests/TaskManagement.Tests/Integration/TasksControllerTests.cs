@@ -2,6 +2,8 @@ namespace TaskManagement.Tests.Integration;
 
 using System.Net;
 using System.Net.Http.Json;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -13,6 +15,11 @@ using Xunit;
 
 public class TasksControllerTests : IClassFixture<TestWebApplicationFactory>, IAsyncLifetime
 {
+    private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web)
+    {
+        Converters = { new JsonStringEnumConverter() }
+    };
+
     private readonly HttpClient _client;
     private readonly TestWebApplicationFactory _factory;
 
@@ -48,7 +55,7 @@ public class TasksControllerTests : IClassFixture<TestWebApplicationFactory>, IA
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.Created);
-        var task = await response.Content.ReadFromJsonAsync<TaskDto>();
+        var task = await response.Content.ReadFromJsonAsync<TaskDto>(JsonOptions);
         task.Should().NotBeNull();
         task!.Title.Should().Be("Test Task");
         task.Description.Should().Be("Test Description");
@@ -68,6 +75,9 @@ public class TasksControllerTests : IClassFixture<TestWebApplicationFactory>, IA
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        var error = await response.Content.ReadFromJsonAsync<JsonElement>(JsonOptions);
+        error.GetProperty("title").GetString().Should().Be("Validation failed");
+        error.GetProperty("errors").EnumerateArray().Should().Contain(message => message.GetString() == "Title is required.");
     }
 
     [Fact]
@@ -104,7 +114,7 @@ public class TasksControllerTests : IClassFixture<TestWebApplicationFactory>, IA
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
-        var tasks = await response.Content.ReadFromJsonAsync<List<TaskDto>>();
+        var tasks = await response.Content.ReadFromJsonAsync<List<TaskDto>>(JsonOptions);
         tasks.Should().NotBeNull();
         tasks.Should().BeEmpty();
     }
@@ -121,7 +131,7 @@ public class TasksControllerTests : IClassFixture<TestWebApplicationFactory>, IA
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
-        var tasks = await response.Content.ReadFromJsonAsync<List<TaskDto>>();
+        var tasks = await response.Content.ReadFromJsonAsync<List<TaskDto>>(JsonOptions);
         tasks.Should().NotBeNull();
         tasks!.Should().HaveCount(2);
     }
@@ -139,7 +149,7 @@ public class TasksControllerTests : IClassFixture<TestWebApplicationFactory>, IA
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
-        var tasks = await response.Content.ReadFromJsonAsync<List<TaskDto>>();
+        var tasks = await response.Content.ReadFromJsonAsync<List<TaskDto>>(JsonOptions);
         tasks.Should().NotBeNull();
         tasks!.Should().HaveCount(1);
         tasks[0].Title.Should().Be("Pending Task");
@@ -156,7 +166,7 @@ public class TasksControllerTests : IClassFixture<TestWebApplicationFactory>, IA
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
-        var task = await response.Content.ReadFromJsonAsync<TaskDto>();
+        var task = await response.Content.ReadFromJsonAsync<TaskDto>(JsonOptions);
         task.Should().NotBeNull();
         task!.Id.Should().Be(created.Id);
         task.Title.Should().Be("Test Task");
@@ -184,7 +194,7 @@ public class TasksControllerTests : IClassFixture<TestWebApplicationFactory>, IA
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
-        var task = await response.Content.ReadFromJsonAsync<TaskDto>();
+        var task = await response.Content.ReadFromJsonAsync<TaskDto>(JsonOptions);
         task.Should().NotBeNull();
         task!.Title.Should().Be("Updated Title");
         task.Description.Should().Be("Updated Desc");
@@ -216,7 +226,7 @@ public class TasksControllerTests : IClassFixture<TestWebApplicationFactory>, IA
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
-        var task = await response.Content.ReadFromJsonAsync<TaskDto>();
+        var task = await response.Content.ReadFromJsonAsync<TaskDto>(JsonOptions);
         task.Should().NotBeNull();
         task!.Status.Should().Be(TaskStatus.InProgress);
     }
@@ -249,7 +259,7 @@ public class TasksControllerTests : IClassFixture<TestWebApplicationFactory>, IA
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
-        var task = await response.Content.ReadFromJsonAsync<TaskDto>();
+        var task = await response.Content.ReadFromJsonAsync<TaskDto>(JsonOptions);
         task!.Status.Should().Be(TaskStatus.Cancelled);
     }
 
@@ -265,7 +275,7 @@ public class TasksControllerTests : IClassFixture<TestWebApplicationFactory>, IA
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
-        var task = await response.Content.ReadFromJsonAsync<TaskDto>();
+        var task = await response.Content.ReadFromJsonAsync<TaskDto>(JsonOptions);
         task!.Status.Should().Be(TaskStatus.Cancelled);
     }
 
@@ -281,7 +291,7 @@ public class TasksControllerTests : IClassFixture<TestWebApplicationFactory>, IA
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
-        var task = await response.Content.ReadFromJsonAsync<TaskDto>();
+        var task = await response.Content.ReadFromJsonAsync<TaskDto>(JsonOptions);
         task!.Status.Should().Be(TaskStatus.Completed);
     }
 
@@ -357,13 +367,13 @@ public class TasksControllerTests : IClassFixture<TestWebApplicationFactory>, IA
         var createDto = new CreateTaskDto(title, description, priority);
         var response = await _client.PostAsJsonAsync("/api/tasks", createDto);
         response.EnsureSuccessStatusCode();
-        return (await response.Content.ReadFromJsonAsync<TaskDto>())!;
+        return (await response.Content.ReadFromJsonAsync<TaskDto>(JsonOptions))!;
     }
 
     private async Task<TaskDto> ChangeStatusAsync(int id, TaskStatus status)
     {
         var response = await _client.PatchAsJsonAsync($"/api/tasks/{id}/status", new ChangeTaskStatusDto(status));
         response.EnsureSuccessStatusCode();
-        return (await response.Content.ReadFromJsonAsync<TaskDto>())!;
+        return (await response.Content.ReadFromJsonAsync<TaskDto>(JsonOptions))!;
     }
 }

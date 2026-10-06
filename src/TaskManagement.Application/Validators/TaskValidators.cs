@@ -1,9 +1,9 @@
 namespace TaskManagement.Application.Validators;
 
 using FluentValidation;
+using TaskManagement.Application.Commands;
 using TaskManagement.Application.DTOs;
-using TaskManagement.Domain.Enums;
-using TaskManagement.Domain.ValueObjects;
+using TaskManagement.Application.Queries;
 
 public class CreateTaskDtoValidator : AbstractValidator<CreateTaskDto>
 {
@@ -47,5 +47,47 @@ public class ChangeTaskStatusDtoValidator : AbstractValidator<ChangeTaskStatusDt
     {
         RuleFor(x => x.Status)
             .IsInEnum().WithMessage("Invalid status value.");
+    }
+}
+
+public class CreateTaskCommandValidator : AbstractValidator<CreateTaskCommand>
+{
+    public CreateTaskCommandValidator()
+    {
+        RuleFor(x => x.TaskDto).SetValidator(new CreateTaskDtoValidator());
+    }
+}
+
+public class UpdateTaskCommandValidator : AbstractValidator<UpdateTaskCommand>
+{
+    public UpdateTaskCommandValidator()
+    {
+        RuleFor(x => x.Id).GreaterThan(0).WithMessage("Task id must be greater than 0.");
+        RuleFor(x => x.TaskDto).SetValidator(new UpdateTaskDtoValidator());
+    }
+}
+
+public class ChangeTaskStatusCommandValidator : AbstractValidator<ChangeTaskStatusCommand>
+{
+    public ChangeTaskStatusCommandValidator()
+    {
+        RuleFor(x => x.Id).GreaterThan(0).WithMessage("Task id must be greater than 0.");
+        RuleFor(x => x.StatusDto).SetValidator(new ChangeTaskStatusDtoValidator());
+    }
+}
+
+public class DeleteTaskCommandValidator : AbstractValidator<DeleteTaskCommand>
+{
+    public DeleteTaskCommandValidator()
+    {
+        RuleFor(x => x.Id).GreaterThan(0).WithMessage("Task id must be greater than 0.");
+    }
+}
+
+public class GetTaskQueryValidator : AbstractValidator<GetTaskQuery>
+{
+    public GetTaskQueryValidator()
+    {
+        RuleFor(x => x.Id).GreaterThan(0).WithMessage("Task id must be greater than 0.");
     }
 }
